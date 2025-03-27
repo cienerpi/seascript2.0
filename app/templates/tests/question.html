@@ -176,6 +176,7 @@
       <img src="{{ url_for('static', filename='images/back.png') }}" alt="Back">
     </button>
     <div class="progress-container">
+      {# Устанавливаем начальное значение прогресса равным предыдущему проценту #}
       {% set previous_percent = ((current - 1) / total * 100) if current > 1 else 0 %}
       <div class="progress-bar" id="progress-bar" style="width: {{ previous_percent }}%;"></div>
     </div>
@@ -184,9 +185,9 @@
 
   <div class="question-card">
     <p>{{ question.question_text }}</p>
-    {% if question.image %}
-      <img src="{{ url_for('tests.picfortests', test_id=session.current_test_id, filename=question.image) }}" alt="Question Image">
-    {% endif %}
+      {% if question.image %}
+        <img src="https://seascript.xyz/tests/picfortests/{{ session.current_test_id }}/{{ question.image }}" alt="Question Image">
+      {% endif %}
 
     <form id="question-form" method="post">
       <div id="answers-container" data-correct="{{ question.correct_answer_id }}">
@@ -199,9 +200,6 @@
       </div>
     </form>
   </div>
-
-  <p>DEBUG: Current test ID is {{ session.current_test_id }}</p>
-
 </div>
 {% endblock %}
 
