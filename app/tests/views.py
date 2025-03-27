@@ -3,6 +3,7 @@ from sqlalchemy import text
 from app import db
 from app.models import save_test_result
 from flask_login import current_user
+from flask import send_from_directory
 
 tests_bp = Blueprint('tests', __name__, url_prefix='/tests')
 
@@ -209,3 +210,9 @@ def start_test_incorrect(result_id):
     session['current_test_id'] = result.test_id
 
     return redirect(url_for('tests.show_question'))
+
+
+@tests_bp.route('/picfortests/<int:test_id>/<path:filename>')
+def picfortests(test_id, filename):
+    directory = f"/opt/bots/picfortests/{test_id}"
+    return send_from_directory(directory, filename)
