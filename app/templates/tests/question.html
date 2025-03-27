@@ -185,9 +185,9 @@
 
   <div class="question-card">
     <p>{{ question.question_text }}</p>
-    {% if question.image %}
-      <img src="{{ url_for('tests.picfortests', test_id=session.current_test_id, filename=question.image) }}" alt="Question Image">
-    {% endif %}
+      {% if question.image %}
+        <img src="{{ url_for('tests.picfortests', test_id=session.current_test_id, filename=question.image) }}" alt="Question Image">
+      {% endif %}
 
     <form id="question-form" method="post">
       <div id="answers-container" data-correct="{{ question.correct_answer_id }}">
