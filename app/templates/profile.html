@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block head %}
+<style>
+  /* Контейнер для профиля: центрирование по вертикали и горизонтали */
+  .profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Центрирование по вертикали */
+    min-height: 80vh;        /* Занимает большую часть высоты экрана */
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  /* Карточка профиля без окантовки */
+  .profile-card {
+    width: 90%;
+    max-width: 300px;
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+    transition: background 0.3s;
+  }
+  /* Аватарка без окантовки */
+  .avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 15px;
+    transition: border 0.3s;
+  }
+  /* Изображение заполняет контейнер */
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+  {% if user %}
+    <div class="profile-card">
+      <div class="avatar">
+        {% if user.profile_photo_url %}
+          {% if user.profile_photo_url.startswith('http') %}
+            <img src="{{ user.profile_photo_url }}" alt="Аватар">
+          {% else %}
+            <img src="{{ url_for('static', filename=user.profile_photo_url) }}" alt="Аватар">
+          {% endif %}
+        {% else %}
+          <img src="{{ url_for('static', filename='images/default-avatar.png') }}" alt="Аватар">
+        {% endif %}
+      </div>
+      <h2>{{ user.first_name }} {{ user.last_name or '' }}</h2>
+      <p><strong>Уровень:</strong> {{ user.level or 1 }}</p>
+    </div>
+  {% else %}
+    <p>Авторизация...</p>
+  {% endif %}
+</div>
+{% endblock %}

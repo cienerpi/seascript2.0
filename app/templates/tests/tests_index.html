@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Select Department for Tests{% endblock %}
+
+{% block head %}
+<style>
+  .container {
+    width: 100%;
+    max-width: 500px;
+    margin: 30px auto;
+    text-align: center;
+  }
+  /* Общий стиль для всех блоков – убрана окантовка */
+  .card, .last-test {
+    width: 300px;
+    background: var(--card-bg);
+    /* Удалена окантовка: border: 1px solid var(--border-color); */
+    border-radius: 15px;
+    padding: 25px;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+    transition: background 0.3s;
+  }
+  h1 {
+    margin-bottom: 15px;
+    font-size: 1.4em;
+  }
+  .button {
+    display: block;
+    width: 100%;
+    max-width: 250px;
+    margin: 10px auto;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: var(--btn-bg);
+    color: var(--text-color);
+    /* Удалена окантовка: border: 1px solid var(--border-color); */
+    font-size: 1em;
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+  }
+  .button:hover {
+    background: var(--btn-bg-hover);
+    transform: translateY(-2px);
+  }
+  .button:active {
+    transform: scale(0.98);
+  }
+  /* Заголовки в блоках дополнительной информации */
+  .last-test h2, .card h1 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+  }
+  .last-test p {
+    margin-bottom: 15px;
+    font-size: 1em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h1>Select Department for Tests</h1>
+    <a href="{{ url_for('tests.deck_levels') }}" class="button">Deck Department</a>
+    <a href="{{ url_for('tests.engine_tests') }}" class="button">Engine Department</a>
+  </div>
+
+  {# Если пользователь авторизован и есть предыдущий тест #}
+  {% if current_user.is_authenticated and current_user.last_test_id and last_test_name %}
+    <div class="last-test">
+      <h2>Restart Last Test</h2>
+      <p>Your last test: {{ last_test_name }}</p>
+      <a href="{{ url_for('tests.start_test_by_id', test_id=current_user.last_test_id) }}" class="button">
+        Restart Last Test
+      </a>
+    </div>
+  {% endif %}
+
+  {# Если в последнем тесте были неверные ответы #}
+  {% if last_incorrect_count > 0 %}
+    <div class="last-test">
+      <h2>Retake Incorrect Questions</h2>
+      <p>You had {{ last_incorrect_count }} incorrect answers in your last test.</p>
+      <a href="{{ url_for('tests.start_test_incorrect', result_id=last_result_id) }}" class="button">
+        Retake Incorrect
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+
+

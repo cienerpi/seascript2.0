@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Question {{ current }} of {{ total }}{% endblock %}
+
+{% block head %}
+<style>
+  .container {
+    width: 100%;
+    max-width: 500px;
+    margin: 30px auto;
+    text-align: center;
+  }
+  .progress-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    width: 100%;
+  }
+  .exit-btn {
+    background: var(--accent-color);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s;
+    padding: 0;
+  }
+  .exit-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .exit-btn:hover {
+    transform: scale(1.05);
+  }
+  .progress-container {
+    flex-grow: 1;
+    background: var(--border-color);
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+    margin: 0 10px;
+    transition: background 0.3s;
+  }
+  .progress-bar {
+    height: 8px;
+    background: var(--accent-color);
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+  .question-status {
+    font-size: 0.9em;
+  }
+  .question-card {
+    width: 90%;
+    max-width: 300px;
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 25px;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: left;
+    transition: background 0.3s;
+  }
+  .question-card p {
+    margin-bottom: 10px;
+    line-height: 1.4em;
+  }
+  .question-card img {
+    display: block;
+    margin: 0 auto 10px;
+    max-width: 100%;
+    height: auto;
+    max-height: 180px;
+    border-radius: 10px;
+    object-fit: contain;
+    transition: border 0.3s;
+  }
+  .answer-option {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 15px;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+  }
+  .answer-option:hover {
+    transform: translateY(-2px);
+  }
+  .correct {
+    background: #00c853 !important;
+    color: #fff;
+  }
+  .incorrect {
+    background: #d32f2f !important;
+    color: #fff;
+  }
+  .button {
+    display: inline-block;
+    margin: 10px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: var(--btn-bg);
+    color: var(--text-color);
+    font-size: 1em;
+    text-decoration: none;
+    transition: background 0.3s, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+  }
+  .button:hover {
+    background: var(--btn-bg-hover);
+    transform: translateY(-2px);
+  }
+</style>
+<script>
+  let selectedAnswer = null;
+
+  function selectAnswer(event) {
+    event.preventDefault();
+    const optionDiv = event.currentTarget;
+    const radioInput = optionDiv.querySelector('input[type="radio"]');
+    if (radioInput) {
+      radioInput.checked = true;
+    }
+    selectedAnswer = optionDiv.getAttribute('data-value');
+    const correctValue = document.getElementById('answers-container').getAttribute('data-correct');
+
+    document.querySelectorAll('.answer-option').forEach(opt => opt.onclick = null);
+
+    if (selectedAnswer === correctValue) {
+      optionDiv.classList.add('correct');
+    } else {
+      optionDiv.classList.add('incorrect');
+      document.querySelectorAll('.answer-option').forEach(opt => {
+        if (opt.getAttribute('data-value') === correctValue) {
+          opt.classList.add('correct');
+        }
+      });
+    }
+    document.getElementById('next-btn').classList.remove('disabled');
+  }
+
+  function updateProgressBar(current, total) {
+    const newPercentage = Math.round((current / total) * 100);
+    document.getElementById('progress-bar').style.width = newPercentage + '%';
+  }
+
+  function goNext() {
+    if (!selectedAnswer) return;
+    document.getElementById('question-form').submit();
+  }
+
+  function initTelegram() {
+    if (window.Telegram && Telegram.WebApp) {
+      Telegram.WebApp.expand();
+      Telegram.WebApp.BackButton.show();
+      Telegram.WebApp.BackButton.onClick(() => Telegram.WebApp.close());
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    updateProgressBar({{ current }}, {{ total }});
+    initTelegram();
+  });
+</script>
+{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="progress-wrapper">
+    <button class="exit-btn" onclick="window.location.href='{{ url_for('tests.index') }}'">
+      <img src="{{ url_for('static', filename='images/back.png') }}" alt="Back">
+    </button>
+    <div class="progress-container">
+      {# Устанавливаем начальное значение прогресса равным предыдущему проценту #}
+      {% set previous_percent = ((current - 1) / total * 100) if current > 1 else 0 %}
+      <div class="progress-bar" id="progress-bar" style="width: {{ previous_percent }}%;"></div>
+    </div>
+    <div class="question-status">{{ current }} / {{ total }}</div>
+  </div>
+
+  <div class="question-card">
+    <p>{{ question.question_text }}</p>
+    {% if question.image %}
+      <img src="{{ url_for('static', filename='images/' ~ session.current_test_id|string ~ '/' ~ question.image) }}" alt="Question Image">
+    {% endif %}
+
+    <form id="question-form" method="post">
+      <div id="answers-container" data-correct="{{ question.correct_answer_id }}">
+        {% for key, answer in question.answers.items() %}
+          <div class="answer-option" data-value="{{ key }}" onclick="selectAnswer(event)">
+            <input type="radio" name="answer" value="{{ key }}" hidden>
+            <span>{{ answer }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block nav %}
+<div class="bottom-nav">
+  <button class="button disabled" id="next-btn" onclick="goNext()">Submit</button>
+</div>
+{% endblock %}

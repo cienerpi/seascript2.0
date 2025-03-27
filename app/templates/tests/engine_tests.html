@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Engine Tests{% endblock %}
+
+{% block head %}
+<style>
+  .container {
+    width: 100%;
+    max-width: 500px;
+    margin: 30px auto;
+    text-align: center;
+  }
+  .card {
+    width: 300px; /* ограничиваем ширину */
+    background: var(--card-bg);
+    /* Удаляем окантовку */
+    border-radius: 15px;
+    padding: 25px;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+    transition: background 0.3s;
+  }
+  h1 {
+    margin-bottom: 15px;
+    font-size: 1.4em;
+  }
+  .test-item {
+    background: var(--card-bg);
+    /* Удаляем окантовку */
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: background 0.3s, transform 0.2s;
+    cursor: pointer;
+    text-align: left;
+  }
+  .test-item:hover {
+    transform: translateY(-2px);
+  }
+  .test-item h3 {
+    margin: 0 0 5px;
+    font-size: 1.1em;
+  }
+  .start-button {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #3d95c2; /* менее яркий цвет для кнопки */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+  .start-button:hover {
+    background-color: #4aa4d0;
+    transform: translateY(-2px);
+  }
+  .back {
+    display: inline-block;
+    margin-top: 20px;
+    background-color: var(--btn-bg);
+    color: var(--text-color);
+    padding: 8px 12px;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+  .back:hover {
+    background-color: var(--btn-bg-hover);
+    transform: translateY(-2px);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h1>Engine Tests</h1>
+    {% if tests %}
+      {% for test in tests %}
+        <div class="test-item">
+          <h3>{{ test.name }}</h3>
+          <a href="{{ url_for('tests.start_test_by_id', test_id=test.id) }}" class="start-button">Start Test</a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No engine tests available.</p>
+    {% endif %}
+    <a href="{{ url_for('tests.index') }}" class="back">← Back to Departments</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Test Finished{% endblock %}
+
+{% block head %}
+<style>
+  .container {
+    max-width: 500px !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+    text-align: center !important;
+  }
+  .feedback {
+    font-size: 1.2em !important;
+    margin: 20px 0 !important;
+  }
+  .option-btn {
+    display: block !important;
+    width: 100% !important;
+    max-width: 250px !important; /* Ограничение ширины кнопок */
+    margin: 10px auto !important;
+    padding: 12px 16px !important;
+    background-color: var(--btn-bg) !important;
+    color: var(--text-color) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s !important;
+  }
+  .option-btn:hover {
+    background-color: var(--btn-bg-hover) !important;
+  }
+  .option-btn.submit {
+    background-color: var(--accent-color) !important;
+    color: #121B23 !important;
+  }
+  .option-btn.submit:hover {
+    background-color: #72d4f9 !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>🎉 Test Completed!</h1>
+  {% if total > 0 %}
+    {% set percent = (score / total * 100) | round(2) %}
+    <p class="feedback">You answered correctly {{ score }} out of {{ total }} questions ({{ percent }}%).</p>
+  {% else %}
+    <p class="feedback">No questions were available to evaluate.</p>
+  {% endif %}
+  <div>
+    <a href="{{ url_for('tests.start_test_by_id', test_id=test_id) }}" class="option-btn">Restart Test</a>
+    {% if result_id %}
+      <a href="{{ url_for('tests.start_test_incorrect', result_id=result_id) }}" class="option-btn">Retake Incorrect</a>
+    {% endif %}
+  </div>
+  <div>
+    <a href="{{ url_for('tests.index') }}" class="option-btn">Back to Departments</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}English{% endblock %}
+
+{% block head %}
+<style>
+  .container {
+    width: 100%;
+    max-width: 500px;
+    margin: 30px auto;
+    text-align: center;
+  }
+  .card {
+    width: 300px; /* ограничиваем ширину */
+    background: var(--light-card);
+    border: 1px solid var(--light-border);
+    border-radius: 15px;
+    padding: 25px;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+    transition: background 0.3s, border 0.3s;
+  }
+  .dark .card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+  }
+  h1 {
+    margin-bottom: 15px;
+    font-size: 1.4em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h1>English</h1>
+    <p>Coming soon...</p>
+  </div>
+</div>
+{% endblock %}
