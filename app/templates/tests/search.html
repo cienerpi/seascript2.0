@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Поиск вопроса{% endblock %}
+
+{% block head %}
+<style>
+  .container {
+    width: 100%;
+    max-width: 500px;
+    margin: 30px auto;
+    text-align: center;
+  }
+  .card {
+    width: 300px;
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 25px;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: background 0.3s;
+  }
+  h1 {
+    margin-bottom: 15px;
+    font-size: 1.4em;
+  }
+  input[type="text"] {
+    display: block;
+    margin: 0 auto 15px;
+    width: 90%;
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+  }
+  .button {
+    display: block;
+    width: 100%;
+    max-width: 250px;
+    margin: 10px auto;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: var(--btn-bg);
+    color: var(--text-color);
+    font-size: 1em;
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+  }
+  .button:hover {
+    background: var(--btn-bg-hover);
+    transform: translateY(-2px);
+  }
+  .message {
+    color: red;
+    margin-bottom: 15px;
+    font-size: 1em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h1>Поиск вопроса</h1>
+    {% if message %}
+      <p class="message">{{ message }}</p>
+    {% endif %}
+    <form method="POST">
+      <input type="text" name="keywords" placeholder="Введите ключевые слова..." autocomplete="off">
+      <button type="submit" class="button">Найти</button>
+    </form>
+    <a href="{{ url_for('tests.engine_tests') }}" class="button">← Назад к тестам</a>
+  </div>
+</div>
+{% endblock %}

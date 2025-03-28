@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Результаты поиска{% endblock %}
+
+{% block head %}
+<style>
+  .container {
+    width: 100%;
+    max-width: 500px;
+    margin: 30px auto;
+    text-align: center;
+  }
+  .card {
+    width: 300px;
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 25px;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: background 0.3s;
+  }
+  h1 {
+    margin-bottom: 15px;
+    font-size: 1.4em;
+  }
+  .question {
+    text-align: left;
+    margin-bottom: 15px;
+    font-size: 1em;
+  }
+  .question h3 {
+    margin: 0 0 5px;
+  }
+  .correct-answer {
+    font-size: 1em;
+    font-weight: bold;
+    color: green;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 15px 0;
+  }
+  .button {
+    display: block;
+    width: 100%;
+    max-width: 250px;
+    margin: 10px auto;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: var(--btn-bg);
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+  }
+  .button:hover {
+    background: var(--btn-bg-hover);
+    transform: translateY(-2px);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <h1>Результаты поиска по запросу: "{{ keywords }}"</h1>
+    {% for question in questions %}
+      <div class="question">
+        <h3>Вопрос {{ loop.index }}:</h3>
+        <p>{{ question.question_text }}</p>
+        {% if question.answers %}
+          {% set answers = question.answers %}
+          {% set correct_id = question.correct_answer_id %}
+          {% set correct_answer = answers[correct_id|string] %}
+          <p class="correct-answer">Правильный ответ: {{ correct_answer }}</p>
+        {% endif %}
+      </div>
+      {% if not loop.last %}
+        <hr>
+      {% endif %}
+    {% endfor %}
+    <a href="{{ url_for('tests.search_test', test_id=questions[0].test_id) }}" class="button">← Назад к поиску</a>
+  </div>
+</div>
+{% endblock %}

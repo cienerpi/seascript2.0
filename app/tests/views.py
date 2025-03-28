@@ -251,6 +251,40 @@ def start_test_incorrect(result_id):
     return redirect(url_for('tests.show_question'))
 
 
+@tests_bp.route('/search_test/<int:test_id>', methods=['GET', 'POST'])
+def search_test(test_id):
+    from flask import request, render_template
+    from sqlalchemy import text
+
+    if request.method == 'POST':
+        keywords = request.form.get('keywords', '').strip()
+        if not keywords:
+            message = "Введите ключевые слова для поиска."
+            return render_template('tests/search.html', test_id=test_id, message=message)
+        if len(keywords) < 4:
+            message = "Введите не менее 4 символов для поиска."
+            return render_template('tests/search.html', test_id=test_id, message=message)
+
+        # Ищем все вопросы по ключевым словам (без ограничения 1 записи)
+        query = text("""
+            SELECT id, question_text, answers, correct_answer_id, image, test_id
+            FROM questions 
+            WHERE test_id = :tid AND question_text ILIKE :pattern
+        """)
+        results = db.session.execute(query, {'tid': test_id, 'pattern': f"%{keywords}%"}).fetchall()
+        if results:
+            # Преобразуем результаты в список словарей
+            questions = [dict(row._mapping) for row in results]
+            return render_template('tests/search_result.html', questions=questions, keywords=keywords)
+        else:
+            message = "Вопросы, соответствующие ключевым словам, не найдены."
+            return render_template('tests/search.html', test_id=test_id, message=message)
+    else:
+        return render_template('tests/search.html', test_id=test_id)
+
+
+
+
 @tests_bp.route('/picfortests/<int:test_id>/<path:filename>')
 def picfortests(test_id, filename):
     directory = f"/opt/bots/picfortests/{test_id}"

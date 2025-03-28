@@ -13,7 +13,6 @@
   .card {
     width: 300px;  /* ограничиваем ширину */
     background: var(--card-bg);
-    /* Удаляем окантовку */
     border-radius: 15px;
     padding: 25px;
     margin: 0 auto 20px;
@@ -27,12 +26,10 @@
   }
   .test-item {
     background: var(--card-bg);
-    /* Удаляем окантовку */
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 15px;
     transition: background 0.3s, transform 0.2s;
-    cursor: pointer;
     text-align: left;
   }
   .test-item:hover {
@@ -42,18 +39,32 @@
     margin: 0 0 5px 0;
     font-size: 1.1em;
   }
-  .start-button {
+  .action-buttons {
+    margin-top: 10px;
+  }
+  .start-button,
+  .search-button {
     display: inline-block;
     padding: 8px 12px;
-    background: #3d95c2; /* менее яркий цвет кнопки */
     color: #fff;
     text-decoration: none;
     border-radius: 5px;
     transition: background-color 0.3s, transform 0.3s;
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    margin-right: 5px;
+  }
+  .start-button {
+    background: #3d95c2; /* менее яркий цвет кнопки */
   }
   .start-button:hover {
     background-color: #4aa4d0;
+    transform: translateY(-2px);
+  }
+  .search-button {
+    background: #6c757d; /* цвет для кнопки поиска */
+  }
+  .search-button:hover {
+    background-color: #5a6268;
     transform: translateY(-2px);
   }
   .back {
@@ -82,7 +93,10 @@
       {% for test in tests %}
         <div class="test-item">
           <h3>{{ test.name }}</h3>
-          <a href="{{ url_for('tests.start_test_by_id', test_id=test.id) }}" class="start-button">Start Test</a>
+          <div class="action-buttons">
+            <a href="{{ url_for('tests.start_test_by_id', test_id=test.id) }}" class="start-button">Start Test</a>
+            <a href="{{ url_for('tests.search_test', test_id=test.id) }}" class="search-button">Search</a>
+          </div>
         </div>
       {% endfor %}
     {% else %}

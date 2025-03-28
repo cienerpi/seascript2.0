@@ -57,7 +57,7 @@
       display: none;
     }
 
-    /* Нижняя панель навигации – панель остаётся у нижнего края, но её высота увеличена */
+    /* Нижняя панель навигации – остаётся внизу */
     .bottom-nav {
       display: flex;
       justify-content: space-around;
@@ -70,9 +70,8 @@
       left: 0;
       right: 0;
       z-index: 100;
-      height: 80px; /* увеличенная высота панели */
+      height: 80px;
     }
-    /* Поднимаем сами кнопки навигации вверх */
     .nav-item {
       text-decoration: none;
       color: var(--text-color);
@@ -80,7 +79,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      transform: translateY(-10px); /* смещение вверх на 10px */
+      transform: translateY(-10px);
     }
     .nav-icon {
       width: 32px;
@@ -91,38 +90,36 @@
       font-size: 0.7em;
       margin-top: 3px;
     }
-    /* При наведении или активности меняем цвет на акцентный */
     .nav-item:hover,
     .nav-item.active {
       color: var(--accent-color);
     }
 
-    /* Кнопки для вариантов ответов (или любых других действий) */
+    /* Кнопки вариантов ответов */
     .option-btn {
       display: block;
       width: 100%;
-      max-width: 400px;           /* ограничение ширины */
-      margin: 8px auto;           /* отступы вокруг и выравнивание по центру */
+      max-width: 400px;
+      margin: 8px auto;
       padding: 12px 16px;
       background-color: var(--btn-bg);
       color: var(--text-color);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       text-align: center;
-      text-decoration: none;      /* если кнопка в виде <a> */
+      text-decoration: none;
       cursor: pointer;
       transition: background-color 0.3s;
     }
     .option-btn:hover {
       background-color: var(--btn-bg-hover);
     }
-    /* Контрастная кнопка (Submit) */
     .option-btn.submit {
       background-color: var(--accent-color);
-      color: #121B23; /* контрастный цвет текста */
+      color: #121B23;
     }
     .option-btn.submit:hover {
-      background-color: #72d4f9; /* немного светлее при ховере */
+      background-color: #72d4f9;
     }
   </style>
   {% block head %}{% endblock %}
@@ -157,9 +154,18 @@
   </div>
   {% endblock %}
 
-  <!-- Авторизация через Telegram Web App -->
+  <!-- Настройка кнопки Back в Telegram Web App -->
   <script>
     Telegram.WebApp.ready();
+    // Переопределяем поведение встроенной кнопки "Back"
+    if (Telegram.WebApp.BackButton) {
+      Telegram.WebApp.BackButton.show();
+      Telegram.WebApp.BackButton.onClick(function() {
+        window.location.href = "/profile";
+      });
+    }
+
+    // Авторизация через Telegram Web App
     fetch('/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -169,7 +175,6 @@
     .then(data => {
       if (data.status === 'ok') {
         console.log('Авторизация успешна');
-        // Пример: если вы хотите перезагрузить профиль при первом входе
         if (window.location.pathname === '/profile' && !sessionStorage.getItem('authReloaded')) {
           sessionStorage.setItem('authReloaded', 'true');
           window.location.reload();
