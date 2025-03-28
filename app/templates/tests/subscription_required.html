@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Подписка требуется{% endblock %}
+
+{% block head %}
+<style>
+  .container {
+    width: 100%;
+    max-width: 500px;
+    margin: 30px auto;
+    text-align: center;
+  }
+  /* Аналогично .card, как в tests_index.html */
+  .card {
+    width: 300px;
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 25px;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+    transition: background 0.3s;
+  }
+
+  .channel-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+  }
+  .channel-name {
+    font-size: 0.95em;
+    font-weight: 600;
+  }
+  .subscribe-button {
+    font-size: 0.9em;
+    padding: 6px 12px;
+    background: var(--accent-color);
+    color: #121B23;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .subscribe-button:hover {
+    background: #72d4f9;
+  }
+  /* Строка, где слева иконка + название, справа кнопка */
+  .channel-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <p>Чтобы проходить тесты, необходимо подписаться на наш канал:</p>
+    <div class="channel-info">
+      <!-- Левая часть: иконка и название -->
+      <div style="display: flex; align-items: center;">
+        <!-- Замените ссылку на актуальный маршрут или URL, если нужно -->
+        <img src="https://seascript.xyz/picfrontend/channel_icon.jpg" alt="Channel Icon" class="channel-icon">
+        <div class="channel-name">SeaScript Channel</div>
+      </div>
+      <!-- Правая часть: кнопка -->
+      <button id="action-button" class="subscribe-button" onclick="handleButtonClick()">Подписаться</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var state = "subscribe"; // начальное состояние
+
+  function handleButtonClick() {
+    if (state === "subscribe") {
+      // Открываем канал в новом окне
+      window.open("https://t.me/seascript", "_blank");
+      // Меняем текст кнопки на "Проверить"
+      document.getElementById("action-button").innerText = "Проверить";
+      state = "check";
+    } else if (state === "check") {
+      // Отправляем AJAX-запрос для проверки подписки
+      fetch("{{ url_for('tests.check_subscription_status') }}")
+      .then(response => response.json())
+      .then(data => {
+        if (data.subscribed) {
+          // Если подписка подтверждена, перезагружаем страницу (маршрут start_test запустит тест)
+          window.location.reload();
+        } else {
+          alert("Подписка не найдена. Пожалуйста, подпишитесь на канал и попробуйте снова.");
+          // Возвращаем кнопку в состояние "Подписаться"
+          document.getElementById("action-button").innerText = "Подписаться";
+          state = "subscribe";
+        }
+      })
+      .catch(error => {
+        console.error("Ошибка проверки подписки:", error);
+        alert("Ошибка проверки подписки.");
+      });
+    }
+  }
+</script>
+{% endblock %}

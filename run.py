@@ -1,5 +1,7 @@
 from app import create_app, db
+import logging
 
+logging.basicConfig(level=logging.INFO)
 app = create_app()
 
 # Создаём структуру базы данных (таблицы) при старте

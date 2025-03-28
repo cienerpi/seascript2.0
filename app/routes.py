@@ -142,3 +142,8 @@ def english():
 @main.route('/store')
 def store():
     return render_template('store/index.html')
+
+
+@main.route('/friends')
+def friends():
+    return render_template('friends.html')

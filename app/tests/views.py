@@ -70,12 +70,28 @@ def deck_by_level(level):
 
 @tests_bp.route('/start_test/<int:test_id>')
 def start_test_by_id(test_id):
-    """
-    Запускает выбранный тест (test_id):
-      - выбирает 50 случайных вопросов и сохраняет их в сессию,
-      - сохраняет test_id в last_test_id (если пользователь авторизован).
-    """
     if current_user.is_authenticated:
+        from flask import current_app, render_template
+        import asyncio, nest_asyncio
+        from sqlalchemy import text
+
+        nest_asyncio.apply()
+
+        async def check_subscription_async(user_telegram_id, channel_chat_id):
+            from telegram import Bot
+            bot = Bot(token=current_app.config['TELEGRAM_BOT_TOKEN'])
+            chat_member = await bot.get_chat_member(chat_id=channel_chat_id, user_id=user_telegram_id)
+            return chat_member.status in ["creator", "administrator", "member"]
+
+        try:
+            loop = asyncio.get_event_loop()
+            is_subscribed = loop.run_until_complete(check_subscription_async(current_user.telegram_id, "@seascript"))
+        except Exception:
+            is_subscribed = False
+
+        if not is_subscribed:
+            return render_template('tests/subscription_required.html')
+
         current_user.last_test_id = test_id
         db.session.commit()
 
@@ -91,8 +107,6 @@ def start_test_by_id(test_id):
         return "No questions available for this test.", 404
 
     questions = [dict(row._mapping) for row in result]
-
-    # Добавляем поле test_id в каждый вопрос
     for q in questions:
         q['test_id'] = test_id
 
@@ -103,6 +117,31 @@ def start_test_by_id(test_id):
     session['current_test_id'] = test_id
 
     return redirect(url_for('tests.show_question'))
+
+@tests_bp.route('/check_subscription_status')
+def check_subscription_status():
+    from flask import current_app, jsonify
+    import asyncio, nest_asyncio
+    nest_asyncio.apply()
+
+    if not current_user.is_authenticated:
+        return jsonify({'subscribed': False})
+
+    async def check_subscription_async(user_telegram_id, channel_chat_id):
+        from telegram import Bot
+        bot = Bot(token=current_app.config['TELEGRAM_BOT_TOKEN'])
+        chat_member = await bot.get_chat_member(chat_id=channel_chat_id, user_id=user_telegram_id)
+        return chat_member.status in ["creator", "administrator", "member"]
+
+    try:
+        loop = asyncio.get_event_loop()
+        is_subscribed = loop.run_until_complete(check_subscription_async(current_user.telegram_id, "@seascript"))
+    except Exception:
+        is_subscribed = False
+
+    return jsonify({'subscribed': is_subscribed})
+
+
 
 
 @tests_bp.route('/question', methods=['GET', 'POST'])
@@ -216,3 +255,11 @@ def start_test_incorrect(result_id):
 def picfortests(test_id, filename):
     directory = f"/opt/bots/picfortests/{test_id}"
     return send_from_directory(directory, filename)
+
+@tests_bp.route('/picfortests_global/<path:filename>')
+def picfortests_global(filename):
+    from flask import send_from_directory
+    directory = "/opt/bots/picfortests"
+    return send_from_directory(directory, filename)
+
+
