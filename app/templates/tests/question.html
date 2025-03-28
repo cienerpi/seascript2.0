@@ -17,28 +17,27 @@
     margin-bottom: 15px;
     width: 100%;
   }
-  /* Кнопка без цветной подложки */
   .exit-btn {
-    background: none;        /* убираем цвет фона */
-    border: none;           /* убираем рамку */
-    width: 32px;            /* фиксируем размер */
-    height: 32px;
-    padding: 0;             /* убираем внутренние отступы */
+    background: var(--accent-color);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     cursor: pointer;
-    display: flex;          /* для центрирования иконки внутри */
+    transition: transform 0.3s;
+    padding: 0;
+    display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s;
-  }
-  .exit-btn:hover {
-    transform: scale(1.1);
   }
   .exit-btn img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;    /* вписываем иконку */
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
   }
-
+  .exit-btn:hover {
+    transform: scale(1.05);
+  }
   .progress-container {
     flex-grow: 1;
     background: var(--border-color);
@@ -173,7 +172,6 @@
   });
 </script>
 {% endblock %}
-
 {% block content %}
 <div class="container">
   <div class="progress-wrapper">
