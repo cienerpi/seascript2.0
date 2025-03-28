@@ -4,25 +4,21 @@
 
 {% block head %}
 <style>
-  .profile-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 80vh;
-    padding: 20px;
-    box-sizing: border-box;
+  .container {
+    width: 100%;
+    max-width: 500px;
+    margin: 30px auto;
+    text-align: center;
   }
-  .profile-card {
-    width: 90%;
-    max-width: 300px;
+  .card {
+    width: 300px;
     background: var(--card-bg);
     border-radius: 15px;
     padding: 25px;
+    margin: 0 auto 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     text-align: center;
     transition: background 0.3s;
-    margin-bottom: 20px;
   }
   .avatar {
     width: 110px;
@@ -49,13 +45,17 @@
   .friends-button:hover {
     background: #72d4f9;
   }
+  h2 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="profile-container">
+<div class="container">
   {% if user %}
-    <div class="profile-card">
+    <div class="card">
       <div class="avatar">
         {% if user.profile_photo_url %}
           {% if user.profile_photo_url.startswith('http') %}
@@ -64,13 +64,15 @@
             <img src="{{ url_for('static', filename=user.profile_photo_url) }}" alt="Аватар">
           {% endif %}
         {% else %}
-          <!-- Стандартная аватарка -->
-            <img src="https://seascript.xyz/tests/picfortests_global/default-avatar.png" alt="Аватар">
+          <!-- Жесткая ссылка на стандартную аватарку из /opt/bots/picfortests -->
+          <img src="https://seascript.xyz/tests/picfortests_global/default-avatar.png" alt="Аватар">
         {% endif %}
       </div>
       <h2>{{ user.first_name }} {{ user.last_name or '' }}</h2>
-      <p><strong>Уровень:</strong> {{ user.level or 1 }}</p>
-      <a href="{{ url_for('main.friends') }}" class="friends-button">Наши друзья</a>
+    </div>
+    <div class="card">
+      <h2>Наши друзья</h2>
+      <a href="{{ url_for('main.friends') }}" class="friends-button">Перейти</a>
     </div>
   {% else %}
     <p>Авторизация...</p>
