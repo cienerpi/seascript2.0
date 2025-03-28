@@ -253,6 +253,28 @@ def start_test_incorrect(result_id):
 
 @tests_bp.route('/search_test/<int:test_id>', methods=['GET', 'POST'])
 def search_test(test_id):
+    if current_user.is_authenticated:
+        from flask import current_app, render_template
+        import asyncio, nest_asyncio
+        from sqlalchemy import text
+
+        nest_asyncio.apply()
+
+        async def check_subscription_async(user_telegram_id, channel_chat_id):
+            from telegram import Bot
+            bot = Bot(token=current_app.config['TELEGRAM_BOT_TOKEN'])
+            chat_member = await bot.get_chat_member(chat_id=channel_chat_id, user_id=user_telegram_id)
+            return chat_member.status in ["creator", "administrator", "member"]
+
+        try:
+            loop = asyncio.get_event_loop()
+            is_subscribed = loop.run_until_complete(check_subscription_async(current_user.telegram_id, "@seascript"))
+        except Exception:
+            is_subscribed = False
+
+        if not is_subscribed:
+            return render_template('tests/subscription_required.html')
+
     from flask import request, render_template
     from sqlalchemy import text
 
@@ -273,7 +295,6 @@ def search_test(test_id):
         """)
         results = db.session.execute(query, {'tid': test_id, 'pattern': f"%{keywords}%"}).fetchall()
         if results:
-            # Преобразуем результаты в список словарей
             questions = [dict(row._mapping) for row in results]
             return render_template('tests/search_result.html', questions=questions, keywords=keywords)
         else:
