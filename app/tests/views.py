@@ -71,7 +71,7 @@ def deck_by_level(level):
 @tests_bp.route('/start_test/<int:test_id>')
 def start_test_by_id(test_id):
     if current_user.is_authenticated:
-        from flask import current_app, render_template
+        from flask import current_app, render_template, flash, redirect, url_for
         import asyncio, nest_asyncio
         from sqlalchemy import text
 
@@ -92,10 +92,10 @@ def start_test_by_id(test_id):
         if not is_subscribed:
             return render_template('tests/subscription_required.html')
 
-        # Проверка баланса: прохождение теста стоит 1 тугрик
+        # Проверка баланса: тест стоит 1 тугрик
         if not current_user.stats or current_user.stats.internal_currency < 1:
-            # Можно создать шаблон tests/no_balance.html с сообщением "Недостаточно тугриков"
-            return render_template('tests/no_balance.html')
+            flash("Недостаточно тугриков! Пригласите друзей, чтобы заработать бонусы.", "error")
+            return redirect(url_for('tests.index'))
         else:
             current_user.stats.internal_currency -= 1
             db.session.commit()
@@ -225,13 +225,14 @@ def engine_tests():
 
 @tests_bp.route('/start_test_incorrect/<int:result_id>')
 def start_test_incorrect(result_id):
+    from flask import flash, redirect, url_for
     if not current_user.is_authenticated:
         return redirect(url_for('tests.index'))
 
     from app.models import TestResult
     result = TestResult.query.get_or_404(result_id)
 
-    # Проверка: результат должен принадлежать текущему пользователю
+    # Проверяем, что тест принадлежит текущему пользователю
     if result.user_id != current_user.telegram_id:
         return "Unauthorized", 403
 
@@ -239,13 +240,15 @@ def start_test_incorrect(result_id):
     if not incorrect_ids:
         return "No incorrect questions in this test result.", 400
 
-    # Проверка баланса: прохождение теста стоит 1 тугрик
+    # Проверка баланса: повторное прохождение теста стоит 1 тугрик
     if not current_user.stats or current_user.stats.internal_currency < 1:
-        return render_template('tests/no_balance.html')
+        flash("Недостаточно тугриков! Пригласите друзей, чтобы заработать бонус.", "error")
+        return redirect(url_for('tests.index'))
     else:
         current_user.stats.internal_currency -= 1
         db.session.commit()
 
+    from sqlalchemy import text
     query = text("""
         SELECT id, question_text, answers, correct_answer_id, image
         FROM questions

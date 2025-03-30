@@ -12,21 +12,12 @@
     /* Единая тёмная цветовая схема */
     :root {
       --font-family: 'Poppins', sans-serif;
-
-      /* Основной цвет фона */
       --bg: #121B23;
-      /* Цвет текста */
       --text-color: #f0f0f0;
-      /* Акцентный цвет (для ссылок, ховер-эффектов) */
       --accent-color: #4fc3f7;
-      /* Фон карточек/контейнеров */
       --card-bg: rgba(255,255,255,0.1);
-      /* Цвет рамок/границ */
       --border-color: rgba(255,255,255,0.2);
-
-      /* Цвет фона для кнопок */
       --btn-bg: #1E2A32;
-      /* Цвет фона кнопок при наведении */
       --btn-bg-hover: #2A3740;
     }
 
@@ -57,7 +48,36 @@
       display: none;
     }
 
-    /* Нижняя панель навигации – остаётся внизу */
+    /* Стили для flash-сообщений */
+    .flashes {
+      width: 100%;
+      max-width: 500px;
+      margin: 10px auto;
+      text-align: center;
+    }
+    .flash {
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    .flash.error {
+      background-color: #d32f2f;
+      color: #fff;
+    }
+    .flash.success {
+      background-color: #388e3c;
+      color: #fff;
+    }
+    .flash.info {
+      background-color: #1976d2;
+      color: #fff;
+    }
+    .flash.warning {
+      background-color: #fbc02d;
+      color: #000;
+    }
+
+    /* Нижняя панель навигации */
     .bottom-nav {
       display: flex;
       justify-content: space-around;
@@ -126,6 +146,15 @@
 </head>
 <body>
   <div class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashes">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
     {% block content %}{% endblock %}
   </div>
 
@@ -154,19 +183,14 @@
   </div>
   {% endblock %}
 
-
-  <!-- Настройка кнопки Back в Telegram Web App -->
   <script>
     Telegram.WebApp.ready();
-    // Переопределяем поведение встроенной кнопки "Back"
     if (Telegram.WebApp.BackButton) {
       Telegram.WebApp.BackButton.show();
       Telegram.WebApp.BackButton.onClick(function() {
         window.location.href = "/profile";
       });
     }
-
-    // Авторизация через Telegram Web App
     fetch('/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
