@@ -4,27 +4,29 @@
 
 {% block head %}
 <style>
+  /* Общий контейнер, как в tests_index.html */
   .container {
     width: 100%;
     max-width: 500px;
     margin: 30px auto;
     text-align: center;
   }
-  /* Карточка стандартного профиля */
-  .card {
+  /* Карточки, как в tests_index.html */
+  .card, .last-test, .referral-container {
     width: 300px;
     background: var(--card-bg);
     border-radius: 15px;
     padding: 25px;
     margin: 0 auto 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
     transition: background 0.3s;
   }
-  /* Блок профиля с аватаркой и информацией */
+  /* Flex-контейнер для карточки профиля */
   .profile-flex {
     display: flex;
     align-items: center;
-    justify-content: center;
+    text-align: left;
   }
   .avatar {
     width: 80px;
@@ -39,38 +41,15 @@
     height: 100%;
     object-fit: cover;
   }
-  .profile-info {
-    text-align: left;
-    flex-grow: 1;
-  }
   .profile-info h2 {
     margin: 0;
     font-size: 1.2em;
   }
-  .balance {
-    display: flex;
-    align-items: center;
-    margin-top: 8px;
+  .profile-info p {
+    margin: 5px 0 0;
     font-size: 1em;
-    font-weight: bold;
-    color: var(--accent-color);
   }
-  .balance img {
-    width: 24px;
-    height: 24px;
-    margin-right: 6px;
-  }
-  /* Отдельный контейнер для реферальной ссылки */
-  .referral-container {
-    width: 300px;
-    background: var(--card-bg);
-    border-radius: 15px;
-    padding: 20px;
-    margin: 0 auto 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    transition: background 0.3s;
-    text-align: center;
-  }
+  /* Стили для карточки с реферальной ссылкой */
   .referral-container h3 {
     margin: 0 0 10px;
     font-size: 1.1em;
@@ -103,7 +82,7 @@
     font-size: 0.9em;
     color: var(--text-color);
   }
-  /* Кнопка для перехода к друзьям */
+  /* Кнопка для перехода к друзьям – как в tests_index */
   .friends-button {
     display: inline-block;
     margin-top: 15px;
@@ -140,20 +119,14 @@
         <div class="profile-info">
           <h2>{{ user.first_name }} {{ user.last_name or '' }}</h2>
           {% if user.stats %}
-            <div class="balance">
-              <img src="https://seascript.xyz/tests/picfortests_global/coin.png" alt="Coin">
-              <span>{{ user.stats.internal_currency }} тугриков</span>
-            </div>
+            <p>Баланс: {{ user.stats.internal_currency }} тугриков</p>
           {% else %}
-            <div class="balance">
-              <img src="https://seascript.xyz/tests/picfortests_global/coin.png" alt="Coin">
-              <span>0 тугриков</span>
-            </div>
+            <p>Баланс: 0 тугриков</p>
           {% endif %}
         </div>
       </div>
     </div>
-    <!-- Контейнер с реферальной ссылкой и информацией -->
+    <!-- Карточка с реферальной ссылкой и информацией -->
     {% if user.stats %}
     <div class="referral-container">
       <h3>Ваша реферальная ссылка</h3>
