@@ -141,12 +141,12 @@
           <h2>{{ user.first_name }} {{ user.last_name or '' }}</h2>
           {% if user.stats %}
             <div class="balance">
-              <img src="{{ url_for('static', filename='images/coin.png') }}" alt="Coin">
+              <img src="https://seascript.xyz/tests/picfortests_global/coin.png" alt="Coin">
               <span>{{ user.stats.internal_currency }} тугриков</span>
             </div>
           {% else %}
             <div class="balance">
-              <img src="{{ url_for('static', filename='images/coin.png') }}" alt="Coin">
+              <img src="https://seascript.xyz/tests/picfortests_global/coin.png" alt="Coin">
               <span>0 тугриков</span>
             </div>
           {% endif %}
@@ -180,9 +180,7 @@
     var copyText = document.getElementById("referralLink");
     var copyButton = document.getElementById("copyButton");
     navigator.clipboard.writeText(copyText.value).then(function() {
-      // Меняем текст кнопки на "Скопировано"
       copyButton.innerText = "Скопировано";
-      // Через 2 секунды возвращаем исходный текст
       setTimeout(function() {
         copyButton.innerText = "Скопировать ссылку";
       }, 2000);
