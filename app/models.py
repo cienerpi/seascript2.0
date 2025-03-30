@@ -72,13 +72,14 @@ class UserStats(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
-    referral_code = db.Column(db.String(32), unique=True, nullable=False, default=lambda: uuid.uuid4().hex[:8])
-    referred_by = db.Column(db.Integer, nullable=True)
     internal_currency = db.Column(db.Integer, default=20)
     experience = db.Column(db.Integer, default=0)
+    inviter_id = db.Column(db.Integer, nullable=True)  # поле для хранения приглашавшего
 
-    # Отношение один к одному с таблицей пользователей
     user = db.relationship('User', backref=db.backref('stats', uselist=False))
+
+    def __repr__(self):
+        return f'<UserStats for user_id {self.user_id}>'
 
     def __repr__(self):
         return f'<UserStats for user_id {self.user_id}>'
