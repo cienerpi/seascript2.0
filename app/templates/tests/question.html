@@ -1,146 +1,212 @@
 {% extends "base.html" %}
 
-{% block title %}Профиль пользователя{% endblock %}
+{% block title %}Question {{ current }} of {{ total }}{% endblock %}
 
 {% block head %}
 <style>
-  /* Общий контейнер, как в tests_index.html */
   .container {
     width: 100%;
     max-width: 500px;
     margin: 30px auto;
     text-align: center;
   }
-  /* Карточки, как в tests_index.html */
-  .card, .referral-container {
-    width: 300px;
+  .progress-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    width: 100%;
+  }
+  .exit-btn {
+    background: var(--accent-color);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .exit-btn img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+  }
+  .exit-btn:hover {
+    transform: scale(1.05);
+  }
+  .progress-container {
+    flex-grow: 1;
+    background: var(--border-color);
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+    margin: 0 10px;
+    transition: background 0.3s;
+  }
+  .progress-bar {
+    height: 8px;
+    background: var(--accent-color);
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+  .question-status {
+    font-size: 0.9em;
+  }
+  .question-card {
+    width: 90%;
+    max-width: 300px;
     background: var(--card-bg);
     border-radius: 15px;
     padding: 25px;
     margin: 0 auto 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    text-align: center;
+    text-align: left;
     transition: background 0.3s;
   }
-  /* Flex-контейнер для карточки профиля */
-  .profile-flex {
+  .question-card p {
+    margin-bottom: 10px;
+    line-height: 1.4em;
+  }
+  .question-card img {
+    display: block;
+    margin: 0 auto 10px;
+    max-width: 100%;
+    height: auto;
+    max-height: 180px;
+    border-radius: 10px;
+    object-fit: contain;
+    transition: border 0.3s;
+  }
+  .answer-option {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 15px;
+    margin: 8px 0;
     display: flex;
     align-items: center;
-    text-align: left;
-  }
-  .avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    overflow: hidden;
-    margin-right: 15px;
-    flex-shrink: 0;
-  }
-  .avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .profile-info h2 {
-    margin: 0;
-    font-size: 1.2em;
-  }
-  .profile-info p {
-    margin: 5px 0 0;
-    font-size: 1em;
-  }
-  /* Стили для карточки с реферальной ссылкой */
-  .referral-container h3 {
-    margin: 0 0 10px;
-    font-size: 1.1em;
-  }
-  .referral-link {
-    width: 100%;
-    padding: 8px;
-    border: none;
-    border-radius: 8px;
-    background: var(--btn-bg);
-    color: var(--text-color);
-    font-size: 0.9em;
-  }
-  .copy-button {
-    margin-top: 10px;
-    padding: 8px 12px;
-    background: var(--btn-bg);
-    color: var(--text-color);
-    border: none;
-    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.3s;
-    font-size: 0.9em;
+    transition: background 0.3s, transform 0.2s;
   }
-  .copy-button:hover {
-    background: var(--btn-bg-hover);
+  .answer-option:hover {
+    transform: translateY(-2px);
   }
-  .referral-info {
-    margin-top: 10px;
-    font-size: 0.9em;
+  .correct {
+    background: #00c853 !important;
+    color: #fff;
+  }
+  .incorrect {
+    background: #d32f2f !important;
+    color: #fff;
+  }
+  .button {
+    display: inline-block;
+    margin: 10px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: var(--btn-bg);
     color: var(--text-color);
+    font-size: 1em;
+    text-decoration: none;
+    transition: background 0.3s, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+  }
+  .button:hover {
+    background: var(--btn-bg-hover);
+    transform: translateY(-2px);
   }
 </style>
-{% endblock %}
+<script>
+  let selectedAnswer = null;
 
+  function selectAnswer(event) {
+    event.preventDefault();
+    const optionDiv = event.currentTarget;
+    const radioInput = optionDiv.querySelector('input[type="radio"]');
+    if (radioInput) {
+      radioInput.checked = true;
+    }
+    selectedAnswer = optionDiv.getAttribute('data-value');
+    const correctValue = document.getElementById('answers-container').getAttribute('data-correct');
+
+    document.querySelectorAll('.answer-option').forEach(opt => opt.onclick = null);
+
+    if (selectedAnswer === correctValue) {
+      optionDiv.classList.add('correct');
+    } else {
+      optionDiv.classList.add('incorrect');
+      document.querySelectorAll('.answer-option').forEach(opt => {
+        if (opt.getAttribute('data-value') === correctValue) {
+          opt.classList.add('correct');
+        }
+      });
+    }
+    document.getElementById('next-btn').classList.remove('disabled');
+  }
+
+  function updateProgressBar(current, total) {
+    const newPercentage = Math.round((current / total) * 100);
+    document.getElementById('progress-bar').style.width = newPercentage + '%';
+  }
+
+  function goNext() {
+    if (!selectedAnswer) return;
+    document.getElementById('question-form').submit();
+  }
+
+  function initTelegram() {
+    if (window.Telegram && Telegram.WebApp) {
+      Telegram.WebApp.expand();
+      Telegram.WebApp.BackButton.show();
+      Telegram.WebApp.BackButton.onClick(() => Telegram.WebApp.close());
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    updateProgressBar({{ current }}, {{ total }});
+    initTelegram();
+  });
+</script>
+{% endblock %}
 {% block content %}
 <div class="container">
-  {% if user %}
-    <!-- Карточка профиля -->
-    <div class="card">
-      <div class="profile-flex">
-        <div class="avatar">
-          {% if user.profile_photo_url %}
-            {% if user.profile_photo_url.startswith('http') %}
-              <img src="{{ user.profile_photo_url }}" alt="Аватар">
-            {% else %}
-              <img src="{{ url_for('static', filename=user.profile_photo_url) }}" alt="Аватар">
-            {% endif %}
-          {% else %}
-            <img src="https://seascript.xyz/tests/picfortests_global/default-avatar.png" alt="Аватар">
-          {% endif %}
-        </div>
-        <div class="profile-info">
-          <h2>{{ user.first_name }} {{ user.last_name or '' }}</h2>
-          {% if user.stats %}
-            <p>Баланс: {{ user.stats.internal_currency }} тугриков</p>
-          {% else %}
-            <p>Баланс: 0 тугриков</p>
-          {% endif %}
-        </div>
-      </div>
+  <div class="progress-wrapper">
+    <button class="exit-btn" onclick="window.location.href='{{ url_for('tests.index') }}'">
+      <img src="https://seascript.xyz/tests/picfortests_global/back.png" alt="Back">
+    </button>
+    <div class="progress-container">
+      {% set previous_percent = ((current - 1) / total * 100) if current > 1 else 0 %}
+      <div class="progress-bar" id="progress-bar" style="width: {{ previous_percent }}%;"></div>
     </div>
-    <!-- Контейнер с реферальной ссылкой и информацией -->
-    {% if user.stats %}
-    <div class="referral-container">
-      <h3>Ваша реферальная ссылка</h3>
-      <input type="text" id="referralLink" class="referral-link" value="https://t.me/YourBot?start={{ user.stats.referral_code }}" readonly>
-      <button class="copy-button" id="copyButton" onclick="copyReferralLink()">Скопировать ссылку</button>
-      <div class="referral-info">
-        <p>Прохождение теста стоит 1 тугрик.</p>
-        <p>За каждого приглашённого участника вы получаете 5 тугриков.</p>
-      </div>
-    </div>
-    {% endif %}
-  {% else %}
-    <p>Авторизация...</p>
-  {% endif %}
-</div>
+    <div class="question-status">{{ current }} / {{ total }}</div>
+  </div>
 
-<script>
-  function copyReferralLink() {
-    var copyText = document.getElementById("referralLink");
-    var copyButton = document.getElementById("copyButton");
-    navigator.clipboard.writeText(copyText.value).then(function() {
-      copyButton.innerText = "Скопировано";
-      setTimeout(function() {
-        copyButton.innerText = "Скопировать ссылку";
-      }, 2000);
-    }, function(err) {
-      console.error("Ошибка при копировании: ", err);
-    });
-  }
-</script>
+  <div class="question-card">
+    <p>{{ question.question_text }}</p>
+    {% if question.image %}
+      <img src="https://seascript.xyz/tests/picfortests/{{ session.current_test_id }}/{{ question.image }}" alt="Question Image">
+    {% endif %}
+
+    <form id="question-form" method="post">
+      <div id="answers-container" data-correct="{{ question.correct_answer_id }}">
+        {% for key, answer in question.answers.items() %}
+          <div class="answer-option" data-value="{{ key }}" onclick="selectAnswer(event)">
+            <input type="radio" name="answer" value="{{ key }}" hidden>
+            <span>{{ answer }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block nav %}
+<div class="bottom-nav">
+  <button class="button disabled" id="next-btn" onclick="goNext()">Submit</button>
+</div>
 {% endblock %}
