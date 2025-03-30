@@ -26,49 +26,36 @@ app.app_context().push()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     telegram_user = update.effective_user
-
-    # Извлекаем реферальный параметр, если он передан в команде /start (например: "/start ABC123")
     message_text = update.message.text or ""
     parts = message_text.strip().split()
-    referral_param = parts[1] if len(parts) > 1 else None
+    # Официальная реферальная ссылка должна иметь вид: "/start ref_12345678"
+    referral_param = parts[1] if len(parts) > 1 and parts[1].startswith("ref_") else None
+    inviter_id = referral_param.replace("ref_", "") if referral_param else None
 
     user = User.query.filter_by(telegram_id=telegram_user.id).first()
 
-    # Получаем свежие фото профиля
+    # Получаем фото профиля (код как был раньше)
     photos = await context.bot.get_user_profile_photos(telegram_user.id)
     profile_photo_url = None
     if photos.total_count > 0:
-        # Выбираем первый вариант первого фото
         photo = photos.photos[0][0]
         file = await context.bot.get_file(photo.file_id)
-
-        # Определяем папку для сохранения аватара (app/static/uploads)
         uploads_dir = os.path.join("app", "static", "uploads")
         os.makedirs(uploads_dir, exist_ok=True)
-
-        # Формируем имя файла, например: avatar_452181463.jpg
         local_filename = os.path.join(uploads_dir, f"avatar_{telegram_user.id}.jpg")
-
-        # Скачиваем файл
         await file.download_to_drive(custom_path=local_filename)
-
-        # Открываем и изменяем размер изображения до минимального (например, ширина 50px)
         try:
             with Image.open(local_filename) as im:
                 width = 50
                 w_percent = (width / float(im.size[0]))
                 height = int((float(im.size[1]) * float(w_percent)))
-                # В новых версиях Pillow используем Image.Resampling.LANCZOS
                 im_resized = im.resize((width, height), Image.Resampling.LANCZOS)
                 im_resized.save(local_filename)
         except Exception as e:
             logger.error(f"Ошибка при изменении размера аватара: {e}")
-
-        # Сохраняем относительный путь для использования в шаблоне (статическая папка app/static)
         profile_photo_url = f"uploads/avatar_{telegram_user.id}.jpg"
 
     if user:
-        # Если пользователь уже существует, обновляем ссылку на аватар, если она изменилась
         if profile_photo_url and user.profile_photo_url != profile_photo_url:
             user.profile_photo_url = profile_photo_url
             db.session.commit()
@@ -76,7 +63,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             f"Привет, {telegram_user.first_name}! Вы уже зарегистрированы."
         )
     else:
-        # Создаем нового пользователя, сохраняя актуальный аватар
         user = User(
             telegram_id=telegram_user.id,
             username=telegram_user.username,
@@ -87,26 +73,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
         db.session.add(user)
         db.session.commit()
-
-        # Обработка реферального кода:
-        # Если при регистрации указан реферальный код, ищем пригласившего пользователя в таблице UserStats
-        # и начисляем ему 5 монет
-        referred_by_id = None
-        if referral_param:
-            inviter_stats = UserStats.query.filter_by(referral_code=referral_param).first()
-            if inviter_stats:
-                referred_by_id = inviter_stats.user_id
-                inviter_stats.internal_currency += 5  # Начисляем 5 монет пригласившему
-                db.session.commit()
-
-        # Создаем запись в таблице UserStats для нового пользователя
-        new_stats = UserStats(user_id=user.id, referred_by=referred_by_id)
+        # Создаем запись в UserStats с начальным балансом (например, 20 тугриков)
+        new_stats = UserStats(user_id=user.id, referred_by=inviter_id)
         db.session.add(new_stats)
         db.session.commit()
-
+        # Если указан реферальный параметр, обновляем баланс пригласившего (1 реферал = 5 тугриков)
+        if inviter_id:
+            inviter = User.query.filter_by(telegram_id=inviter_id).first()
+            if inviter and inviter.stats:
+                inviter.stats.internal_currency += 5
+                db.session.commit()
         await update.message.reply_text(
             f"Привет, {telegram_user.first_name}! Вы успешно зарегистрированы."
         )
+
 
 async def openweb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Формируем URL для WebApp (страница профиля)

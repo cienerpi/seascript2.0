@@ -4,14 +4,12 @@
 
 {% block head %}
 <style>
-  /* Общий контейнер, как в tests_index.html */
   .container {
     width: 100%;
     max-width: 500px;
     margin: 30px auto;
     text-align: center;
   }
-  /* Карточки, как в tests_index.html */
   .card, .referral-container {
     width: 300px;
     background: var(--card-bg);
@@ -22,7 +20,6 @@
     text-align: center;
     transition: background 0.3s;
   }
-  /* Flex-контейнер для карточки профиля */
   .profile-flex {
     display: flex;
     align-items: center;
@@ -49,7 +46,6 @@
     margin: 5px 0 0;
     font-size: 1em;
   }
-  /* Стили для карточки с реферальной ссылкой */
   .referral-container h3 {
     margin: 0 0 10px;
     font-size: 1.1em;
@@ -112,11 +108,11 @@
         </div>
       </div>
     </div>
-    <!-- Контейнер с реферальной ссылкой и информацией -->
-    {% if user.stats %}
+    <!-- Карточка с реферальной ссылкой и информацией -->
+    {% if user %}
     <div class="referral-container">
       <h3>Ваша реферальная ссылка</h3>
-      <input type="text" id="referralLink" class="referral-link" value="https://t.me/YourBot?start={{ user.stats.referral_code }}" readonly>
+      <input type="text" id="referralLink" class="referral-link" value="https://t.me/SeaScriptBot?start=ref_{{ user.telegram_id }}" readonly>
       <button class="copy-button" id="copyButton" onclick="copyReferralLink()">Скопировать ссылку</button>
       <div class="referral-info">
         <p>Прохождение теста стоит 1 тугрик.</p>
