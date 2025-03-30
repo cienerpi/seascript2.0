@@ -1,6 +1,8 @@
 from datetime import datetime
 from flask_login import UserMixin
 from app import db
+import uuid
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -21,6 +23,7 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return f'<User {self.telegram_id} {self.username}>'
 
+
 class TestResult(db.Model):
     __tablename__ = 'test_results'
 
@@ -33,6 +36,7 @@ class TestResult(db.Model):
     incorrect_count = db.Column(db.Integer, nullable=False)
     incorrect_question_ids = db.Column(db.JSON, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 def save_test_result(user_id, test_id, score, total_questions, correct_count, incorrect_count, incorrect_question_ids):
     result = TestResult(
@@ -60,3 +64,21 @@ class Test(db.Model):
 
     def __repr__(self):
         return f'<Test {self.id} {self.name}>'
+
+
+# Новая таблица для статистики пользователя и реферальной системы
+class UserStats(db.Model):
+    __tablename__ = 'user_stats'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    referral_code = db.Column(db.String(32), unique=True, nullable=False, default=lambda: uuid.uuid4().hex[:8])
+    referred_by = db.Column(db.Integer, nullable=True)
+    internal_currency = db.Column(db.Integer, default=20)
+    experience = db.Column(db.Integer, default=0)
+
+    # Отношение один к одному с таблицей пользователей
+    user = db.relationship('User', backref=db.backref('stats', uselist=False))
+
+    def __repr__(self):
+        return f'<UserStats for user_id {self.user_id}>'

@@ -92,6 +92,14 @@ def start_test_by_id(test_id):
         if not is_subscribed:
             return render_template('tests/subscription_required.html')
 
+        # Проверка баланса: прохождение теста стоит 1 тугрик
+        if not current_user.stats or current_user.stats.internal_currency < 1:
+            # Можно создать шаблон tests/no_balance.html с сообщением "Недостаточно тугриков"
+            return render_template('tests/no_balance.html')
+        else:
+            current_user.stats.internal_currency -= 1
+            db.session.commit()
+
         current_user.last_test_id = test_id
         db.session.commit()
 
@@ -117,6 +125,7 @@ def start_test_by_id(test_id):
     session['current_test_id'] = test_id
 
     return redirect(url_for('tests.show_question'))
+
 
 @tests_bp.route('/check_subscription_status')
 def check_subscription_status():
@@ -230,6 +239,13 @@ def start_test_incorrect(result_id):
     if not incorrect_ids:
         return "No incorrect questions in this test result.", 400
 
+    # Проверка баланса: прохождение теста стоит 1 тугрик
+    if not current_user.stats or current_user.stats.internal_currency < 1:
+        return render_template('tests/no_balance.html')
+    else:
+        current_user.stats.internal_currency -= 1
+        db.session.commit()
+
     query = text("""
         SELECT id, question_text, answers, correct_answer_id, image
         FROM questions
@@ -249,6 +265,7 @@ def start_test_incorrect(result_id):
     session['current_test_id'] = result.test_id
 
     return redirect(url_for('tests.show_question'))
+
 
 
 @tests_bp.route('/search_test/<int:test_id>', methods=['GET', 'POST'])

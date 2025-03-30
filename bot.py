@@ -6,6 +6,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppI
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from dotenv import load_dotenv
 from PIL import Image
+
 # Разрешаем вложенные asyncio loop (актуально при повторном запуске в Jupyter и т.п.)
 nest_asyncio.apply()
 
@@ -15,17 +16,22 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Импортируем Flask-приложение и модель для работы с БД внутри бота
+# Импортируем Flask‑приложение и модели для работы с БД внутри бота
 from app import create_app, db
-from app.models import User
+from app.models import User, UserStats  # Импортируем модель User и дополнительную модель UserStats
 
-# Инициализируем Flask-приложение и базу данных (для доступа к User внутри бота)
+# Инициализируем Flask‑приложение и базу данных (для доступа к User и UserStats)
 app = create_app()
 app.app_context().push()
 
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     telegram_user = update.effective_user
+
+    # Извлекаем реферальный параметр, если он передан в команде /start (например: "/start ABC123")
+    message_text = update.message.text or ""
+    parts = message_text.strip().split()
+    referral_param = parts[1] if len(parts) > 1 else None
+
     user = User.query.filter_by(telegram_id=telegram_user.id).first()
 
     # Получаем свежие фото профиля
@@ -52,11 +58,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 width = 50
                 w_percent = (width / float(im.size[0]))
                 height = int((float(im.size[1]) * float(w_percent)))
-                im_resized = im.resize((width, height), Image.ANTIALIAS)
+                # В новых версиях Pillow используем Image.Resampling.LANCZOS
+                im_resized = im.resize((width, height), Image.Resampling.LANCZOS)
                 im_resized.save(local_filename)
         except Exception as e:
-            # Если произошла ошибка при изменении размера, логируем её и продолжаем
-            print(f"Ошибка при изменении размера аватара: {e}")
+            logger.error(f"Ошибка при изменении размера аватара: {e}")
 
         # Сохраняем относительный путь для использования в шаблоне (статическая папка app/static)
         profile_photo_url = f"uploads/avatar_{telegram_user.id}.jpg"
@@ -81,6 +87,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
         db.session.add(user)
         db.session.commit()
+
+        # Обработка реферального кода:
+        # Если при регистрации указан реферальный код, ищем пригласившего пользователя в таблице UserStats
+        # и начисляем ему 5 монет
+        referred_by_id = None
+        if referral_param:
+            inviter_stats = UserStats.query.filter_by(referral_code=referral_param).first()
+            if inviter_stats:
+                referred_by_id = inviter_stats.user_id
+                inviter_stats.internal_currency += 5  # Начисляем 5 монет пригласившему
+                db.session.commit()
+
+        # Создаем запись в таблице UserStats для нового пользователя
+        new_stats = UserStats(user_id=user.id, referred_by=referred_by_id)
+        db.session.add(new_stats)
+        db.session.commit()
+
         await update.message.reply_text(
             f"Привет, {telegram_user.first_name}! Вы успешно зарегистрированы."
         )
@@ -109,7 +132,6 @@ async def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("openweb", openweb))
 
-    # Оборачиваем вызов delete_webhook в try/except с таймаутом 10 секунд
     try:
         await application.bot.delete_webhook(timeout=10)
     except Exception as e:

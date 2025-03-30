@@ -10,6 +10,7 @@
     margin: 30px auto;
     text-align: center;
   }
+  /* Карточка стандартного профиля */
   .card {
     width: 300px;
     background: var(--card-bg);
@@ -17,24 +18,95 @@
     padding: 25px;
     margin: 0 auto 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    text-align: center;
     transition: background 0.3s;
   }
+  /* Блок профиля с аватаркой и информацией */
+  .profile-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .avatar {
-    width: 110px;
-    height: 110px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     overflow: hidden;
-    margin: 0 auto 15px;
+    margin-right: 15px;
+    flex-shrink: 0;
   }
   .avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
+  .profile-info {
+    text-align: left;
+    flex-grow: 1;
+  }
+  .profile-info h2 {
+    margin: 0;
+    font-size: 1.2em;
+  }
+  .balance {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 1em;
+    font-weight: bold;
+    color: var(--accent-color);
+  }
+  .balance img {
+    width: 24px;
+    height: 24px;
+    margin-right: 6px;
+  }
+  /* Отдельный контейнер для реферальной ссылки */
+  .referral-container {
+    width: 300px;
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: background 0.3s;
+    text-align: center;
+  }
+  .referral-container h3 {
+    margin: 0 0 10px;
+    font-size: 1.1em;
+  }
+  .referral-link {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: var(--btn-bg);
+    color: var(--text-color);
+    font-size: 0.9em;
+  }
+  .copy-button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: var(--btn-bg);
+    color: var(--text-color);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: 0.9em;
+  }
+  .copy-button:hover {
+    background: var(--btn-bg-hover);
+  }
+  .referral-info {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: var(--text-color);
+  }
+  /* Кнопка для перехода к друзьям */
   .friends-button {
     display: inline-block;
-    margin-top: 10px;
+    margin-top: 15px;
     padding: 8px 16px;
     background: var(--accent-color);
     color: #121B23;
@@ -45,31 +117,55 @@
   .friends-button:hover {
     background: #72d4f9;
   }
-  h2 {
-    font-size: 1.2em;
-    margin-bottom: 10px;
-  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
   {% if user %}
+    <!-- Карточка профиля -->
     <div class="card">
-      <div class="avatar">
-        {% if user.profile_photo_url %}
-          {% if user.profile_photo_url.startswith('http') %}
-            <img src="{{ user.profile_photo_url }}" alt="Аватар">
+      <div class="profile-flex">
+        <div class="avatar">
+          {% if user.profile_photo_url %}
+            {% if user.profile_photo_url.startswith('http') %}
+              <img src="{{ user.profile_photo_url }}" alt="Аватар">
+            {% else %}
+              <img src="{{ url_for('static', filename=user.profile_photo_url) }}" alt="Аватар">
+            {% endif %}
           {% else %}
-            <img src="{{ url_for('static', filename=user.profile_photo_url) }}" alt="Аватар">
+            <img src="https://seascript.xyz/tests/picfortests_global/default-avatar.png" alt="Аватар">
           {% endif %}
-        {% else %}
-          <!-- Жесткая ссылка на стандартную аватарку из /opt/bots/picfortests -->
-          <img src="https://seascript.xyz/tests/picfortests_global/default-avatar.png" alt="Аватар">
-        {% endif %}
+        </div>
+        <div class="profile-info">
+          <h2>{{ user.first_name }} {{ user.last_name or '' }}</h2>
+          {% if user.stats %}
+            <div class="balance">
+              <img src="{{ url_for('static', filename='images/coin.png') }}" alt="Coin">
+              <span>{{ user.stats.internal_currency }} тугриков</span>
+            </div>
+          {% else %}
+            <div class="balance">
+              <img src="{{ url_for('static', filename='images/coin.png') }}" alt="Coin">
+              <span>0 тугриков</span>
+            </div>
+          {% endif %}
+        </div>
       </div>
-      <h2>{{ user.first_name }} {{ user.last_name or '' }}</h2>
     </div>
+    <!-- Контейнер с реферальной ссылкой и информацией -->
+    {% if user.stats %}
+    <div class="referral-container">
+      <h3>Ваша реферальная ссылка</h3>
+      <input type="text" id="referralLink" class="referral-link" value="https://t.me/SeaScriptBot?start={{ user.stats.referral_code }}" readonly>
+      <button class="copy-button" id="copyButton" onclick="copyReferralLink()">Скопировать ссылку</button>
+      <div class="referral-info">
+        <p>Прохождение теста стоит 1 тугрик.</p>
+        <p>За каждого приглашённого участника вы получаете 5 тугриков.</p>
+      </div>
+    </div>
+    {% endif %}
+    <!-- Карточка друзей -->
     <div class="card">
       <h2>Наши друзья</h2>
       <a href="{{ url_for('main.friends') }}" class="friends-button">Перейти</a>
@@ -78,4 +174,21 @@
     <p>Авторизация...</p>
   {% endif %}
 </div>
+
+<script>
+  function copyReferralLink() {
+    var copyText = document.getElementById("referralLink");
+    var copyButton = document.getElementById("copyButton");
+    navigator.clipboard.writeText(copyText.value).then(function() {
+      // Меняем текст кнопки на "Скопировано"
+      copyButton.innerText = "Скопировано";
+      // Через 2 секунды возвращаем исходный текст
+      setTimeout(function() {
+        copyButton.innerText = "Скопировать ссылку";
+      }, 2000);
+    }, function(err) {
+      console.error("Ошибка при копировании: ", err);
+    });
+  }
+</script>
 {% endblock %}
