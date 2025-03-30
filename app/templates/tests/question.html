@@ -12,7 +12,7 @@
     text-align: center;
   }
   /* Карточки, как в tests_index.html */
-  .card, .last-test, .referral-container {
+  .card, .referral-container {
     width: 300px;
     background: var(--card-bg);
     border-radius: 15px;
@@ -82,20 +82,6 @@
     font-size: 0.9em;
     color: var(--text-color);
   }
-  /* Кнопка для перехода к друзьям – как в tests_index */
-  .friends-button {
-    display: inline-block;
-    margin-top: 15px;
-    padding: 8px 16px;
-    background: var(--accent-color);
-    color: #121B23;
-    text-decoration: none;
-    border-radius: 8px;
-    transition: background 0.3s;
-  }
-  .friends-button:hover {
-    background: #72d4f9;
-  }
 </style>
 {% endblock %}
 
@@ -126,7 +112,7 @@
         </div>
       </div>
     </div>
-    <!-- Карточка с реферальной ссылкой и информацией -->
+    <!-- Контейнер с реферальной ссылкой и информацией -->
     {% if user.stats %}
     <div class="referral-container">
       <h3>Ваша реферальная ссылка</h3>
@@ -138,11 +124,6 @@
       </div>
     </div>
     {% endif %}
-    <!-- Карточка друзей -->
-    <div class="card">
-      <h2>Наши друзья</h2>
-      <a href="{{ url_for('main.friends') }}" class="friends-button">Перейти</a>
-    </div>
   {% else %}
     <p>Авторизация...</p>
   {% endif %}
