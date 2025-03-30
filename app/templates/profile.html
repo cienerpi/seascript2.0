@@ -4,12 +4,14 @@
 
 {% block head %}
 <style>
+  /* Общий контейнер, как в tests_index.html */
   .container {
     width: 100%;
     max-width: 500px;
     margin: 30px auto;
     text-align: center;
   }
+  /* Карточки с фиксированной шириной 300px */
   .card, .referral-container {
     width: 300px;
     background: var(--card-bg);
@@ -17,9 +19,10 @@
     padding: 25px;
     margin: 0 auto 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    text-align: center;
     transition: background 0.3s;
+    text-align: center;
   }
+  /* Flex-контейнер для карточки профиля */
   .profile-flex {
     display: flex;
     align-items: center;
@@ -42,10 +45,21 @@
     margin: 0;
     font-size: 1.2em;
   }
-  .profile-info p {
-    margin: 5px 0 0;
+  /* Секция баланса с иконкой монетки */
+  .balance {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
     font-size: 1em;
+    font-weight: bold;
+    color: var(--accent-color);
   }
+  .balance img {
+    width: 24px;
+    height: 24px;
+    margin-right: 6px;
+  }
+  /* Стили для карточки с реферальной ссылкой */
   .referral-container h3 {
     margin: 0 0 10px;
     font-size: 1.1em;
@@ -101,18 +115,24 @@
         <div class="profile-info">
           <h2>{{ user.first_name }} {{ user.last_name or '' }}</h2>
           {% if user.stats %}
-            <p>Баланс: {{ user.stats.internal_currency }} тугриков</p>
+            <div class="balance">
+              <img src="https://seascript.xyz/tests/picfortests_global/coin.png" alt="Coin">
+              <span>{{ user.stats.internal_currency }} тугриков</span>
+            </div>
           {% else %}
-            <p>Баланс: 0 тугриков</p>
+            <div class="balance">
+              <img src="https://seascript.xyz/tests/picfortests_global/coin.png" alt="Coin">
+              <span>0 тугриков</span>
+            </div>
           {% endif %}
         </div>
       </div>
     </div>
-    <!-- Карточка с реферальной ссылкой и информацией -->
-    {% if user %}
+    <!-- Карточка с реферальной ссылкой и бонусной информацией -->
+    {% if user.stats %}
     <div class="referral-container">
       <h3>Ваша реферальная ссылка</h3>
-      <input type="text" id="referralLink" class="referral-link" value="https://t.me/SeaScriptBot?start=ref_{{ user.telegram_id }}" readonly>
+      <input type="text" id="referralLink" class="referral-link" value="https://t.me/YourBot?start={{ user.stats.referral_code }}" readonly>
       <button class="copy-button" id="copyButton" onclick="copyReferralLink()">Скопировать ссылку</button>
       <div class="referral-info">
         <p>Прохождение теста стоит 1 тугрик.</p>

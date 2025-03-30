@@ -67,14 +67,20 @@ class Test(db.Model):
 
 
 # Новая таблица для статистики пользователя и реферальной системы
+import uuid
+from datetime import datetime
+from app import db
+
+
 class UserStats(db.Model):
     __tablename__ = 'user_stats'
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    referral_code = db.Column(db.String(32), unique=True, nullable=False, default=lambda: uuid.uuid4().hex[:8])
+    referred_by = db.Column(db.Integer, nullable=True)  # Здесь будем хранить Telegram ID того, кто пригласил
     internal_currency = db.Column(db.Integer, default=20)
     experience = db.Column(db.Integer, default=0)
-    inviter_id = db.Column(db.Integer, nullable=True)  # поле для хранения приглашавшего
 
     user = db.relationship('User', backref=db.backref('stats', uselist=False))
 
