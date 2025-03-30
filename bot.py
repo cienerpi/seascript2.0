@@ -26,16 +26,15 @@ app.app_context().push()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     telegram_user = update.effective_user
-
-    # Извлекаем реферальный параметр, если он передан, например "/start ref_12345678"
     message_text = update.message.text or ""
     parts = message_text.strip().split()
+    # Официальная реферальная ссылка должна иметь вид: "/start ref_12345678"
     referral_param = parts[1] if len(parts) > 1 and parts[1].startswith("ref_") else None
-    inviter_id = int(referral_param.replace("ref_", "")) if referral_param else None
+    inviter_id = referral_param.replace("ref_", "") if referral_param else None
 
     user = User.query.filter_by(telegram_id=telegram_user.id).first()
 
-    # (Код для получения и обработки аватара остаётся без изменений)
+    # Получаем фото профиля (код как был раньше)
     photos = await context.bot.get_user_profile_photos(telegram_user.id)
     profile_photo_url = None
     if photos.total_count > 0:
@@ -64,7 +63,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             f"Привет, {telegram_user.first_name}! Вы уже зарегистрированы."
         )
     else:
-        # Создаем нового пользователя
         user = User(
             telegram_id=telegram_user.id,
             username=telegram_user.username,
@@ -75,19 +73,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
         db.session.add(user)
         db.session.commit()
-
-        # Создаем запись в UserStats с полем inviter_id (если оно задано)
-        new_stats = UserStats(user_id=user.id, inviter_id=inviter_id)
+        # Создаем запись в UserStats с начальным балансом (например, 20 тугриков)
+        new_stats = UserStats(user_id=user.id, referred_by=inviter_id)
         db.session.add(new_stats)
         db.session.commit()
-
-        # Если inviter_id указан, находим пригласившего и начисляем ему 5 тугриков
+        # Если указан реферальный параметр, обновляем баланс пригласившего (1 реферал = 5 тугриков)
         if inviter_id:
             inviter = User.query.filter_by(telegram_id=inviter_id).first()
             if inviter and inviter.stats:
                 inviter.stats.internal_currency += 5
                 db.session.commit()
-
         await update.message.reply_text(
             f"Привет, {telegram_user.first_name}! Вы успешно зарегистрированы."
         )
